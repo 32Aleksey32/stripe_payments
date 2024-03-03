@@ -1,0 +1,14 @@
+[flake8]
+exclude =
+    .git,
+    env,
+    venv,
+    *.egg-info,
+    migrations*,
+    *__init__.py*
+
+
+max-line-length = 121
+
+inline-quotes = '
+multiline-quotes = """

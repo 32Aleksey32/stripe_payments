@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Спасибо за ваш заказ!{% endblock %}
+{% block content %}
+<div class="item-container">
+  <h1>Спасибо за Ваш заказ!</h1>
+  <p>
+    Мы ценим Ваш бизнес! <br>
+    Если у Вас есть какие-либо вопросы, пожалуйста пишите на почту <br>
+    <a href="mailto:orders@example.com">orders@example.com</a>
+  </p>
+  <form action="{% url 'main_page' %}" method="get">
+    <button class="button">Вернуться на главную</button>
+  </form>
+</div>
+{% endblock %}

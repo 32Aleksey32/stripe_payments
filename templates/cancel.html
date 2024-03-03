@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Отмена покупки{% endblock %}
+{% block content %}
+  <div class="item-container">
+    <h1>Покупка отменена</h1>
+    <p>Вы отменили платеж за товар</p>
+    <p>Вернитесь на страницу товара и снова нажмите "купить"</p>
+    <form action="{% url 'main_page' %}" method="get">
+      <button class="button">Вернуться на главную</button>
+    </form>
+  </div>
+{% endblock %}

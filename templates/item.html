@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Купить {{ item.name }}{% endblock %}
+{% block content %}
+  <div class="item-container">
+    <h1>{{ item.name }}</h1>
+    <p>{{ item.description }}</p>
+    <p>Цена: {{ item.price }} {{ item.currency }}</p>
+    <button id="buy-button" class="button">Купить</button>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="text/javascript">
+      var stripe = Stripe("{{ public_key }}");
+      var buyButton = document.getElementById("buy-button");
+      buyButton.addEventListener('click', function() {
+        fetch('/buy/{{ item.id }}', {method: 'GET'})
+        .then(response => response.json())
+        .then(session => stripe.redirectToCheckout({ sessionId: session.session_id }))
+      });
+    </script>
+
+    {% if request.user.is_authenticated %}
+      <form action="{% url 'add_to_order' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="item_id" value="{{ item.id }}">
+          <button class="button">Добавить в заказ</button>
+      </form>
+    {% endif %}
+
+    <form action="{% url 'main_page' %}" method="get">
+        <button class="button">Вернуться на главную</button>
+    </form>
+
+  </div>
+{% endblock %}
