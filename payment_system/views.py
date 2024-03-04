@@ -3,8 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
-from django.views import View
-from django.views.generic import TemplateView
+from django.views import View, generic
 
 from config.settings import STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY
 from payment_system.models import Item, ItemAnOrder, Order
@@ -27,31 +26,36 @@ class BuyView(View):
         return create_session(request, line_items)
 
 
-class ListItemView(TemplateView):
+class ListItemView(generic.TemplateView):
     template_name = 'main_page.html'
 
-    def get_context_data(self, *args, **kwargs) -> dict:
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
         context['items'] = Item.objects.all()
+        if self.request.user.is_authenticated:
+            context['order'] = Order.objects.filter(user=self.request.user).order_by('-id').first()
         return context
 
 
-class ItemView(TemplateView):
+class ItemView(generic.TemplateView):
     template_name = 'item.html'
 
-    def get_context_data(self, *args, **kwargs) -> dict:
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
         context['item'] = get_object_or_404(Item, id=self.kwargs['id'])
         context['public_key'] = STRIPE_PUBLIC_KEY
+        if self.request.user.is_authenticated:
+            context['order'] = Order.objects.filter(user=self.request.user).order_by('-id').first()
         return context
 
 
-class OrderView(TemplateView):
+class OrderView(generic.TemplateView):
     template_name = 'order.html'
 
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        context['order'] = get_object_or_404(Order, id=self.kwargs['id'])
+        if self.request.user.is_authenticated:
+            context['order'] = Order.objects.filter(user=self.request.user).order_by('-id').first()
         context['items'] = ItemAnOrder.objects.filter(order_id=self.kwargs['id'])
         context['public_key'] = STRIPE_PUBLIC_KEY
         return context
@@ -63,12 +67,9 @@ class ItemAnOrderView(View):
     def post(self, request) -> HttpResponse:
         if request.user.is_authenticated:
             item_id = request.POST.get('item_id')
-
-            # Получаем или создаем заказ пользователя
-            order, created = Order.objects.get_or_create(user=request.user)
+            order = Order.objects.filter(user=request.user).order_by('-id').first()
             # Получаем товар в заказе или добавляем товар в заказ
             item_an_order, created = ItemAnOrder.objects.get_or_create(order=order, item_id=item_id)
-
             # Увеличиваем количество товара, если он уже существует в заказе
             if not created:
                 item_an_order.quantity += 1
@@ -109,8 +110,23 @@ class PayOrderView(View):
 class SuccessView(View):
 
     def get(self, request):
-        """После успешной оплаты удаляем все товары в заказе"""
+        """После успешной оплаты удаляем заказ и создаем новый"""
         if request.user.is_authenticated:
-            items_an_order = ItemAnOrder.objects.filter(order__user=request.user).all()
-            items_an_order.delete()
-        return render(request, 'success.html')
+            order = Order.objects.filter(user=request.user).order_by('-id').first()
+            order.delete()
+            new_order = Order.objects.create(user=request.user)
+            result = render(request, 'success.html', {'order': new_order})
+        else:
+            result = render(request, 'success.html')
+
+        return result
+
+
+class CancelView(generic.TemplateView):
+    template_name = 'cancel.html'
+
+    def get_context_data(self, **kwargs) -> dict:
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context['order'] = Order.objects.filter(user=self.request.user).order_by('-id').first()
+        return context
