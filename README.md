@@ -61,12 +61,12 @@ docker-compose up
 ### Доступные страницы:
 - Получение Stripe Session Id:
   ```
-  GET /buy/1/
+  GET /buy/{id}/
   ```
 
 - Получение данных о товаре:
   ```
-  GET /item/1/
+  GET /item/{id}/
   ```
 
 - Добавление товара в заказ:
@@ -76,9 +76,13 @@ docker-compose up
 
 - Просмотр заказа и товаров в нем:
   ```
-  GET /order/1/
+  GET /order/{id}/
   ```
-  
+
+- Оплата заказа:
+  ```
+  GET /order/{id}/pay_order/
+  ```
 
 ### Стек технологий использованный в проекте:
 - Python 3.10
