@@ -2,7 +2,7 @@
 
 1. **Клонируйте репозиторий на свой компьютер.**
 ```
-git clone https://github.com/32Aleksey32/stripe_payments.git
+https://github.com/32Aleksey32/stripe_payments.git
 ```
 
 2. **Зарегистрируйтесь на сайте Stripe:**
